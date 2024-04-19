@@ -24,6 +24,8 @@ void SolverBFS::solve() {
     }
 
     std::queue<Puzzle*> statesQueue;
+    
+    
     /*std::unordered_set<std::vector<std::vector<int>>, std::hash<std::vector<std::vector<int>>>, std::equal_to<std::vector<std::vector<int>>>> visited;
 
     statesQueue.push(puzzle);
