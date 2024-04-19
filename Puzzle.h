@@ -1,6 +1,5 @@
 #ifndef PUZZLE_H
 #define PUZZLE_H
-
 #include <iostream>
 #include <vector>
 
@@ -22,7 +21,7 @@ struct Move
 
 class Puzzle
 {
-private:
+public:
     std::vector<Puzzle *> children;
     std::vector<int> puzzle;
     Puzzle *parent;
