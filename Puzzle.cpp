@@ -33,9 +33,7 @@ std::vector<Move> get_moves(State *s) {
     return valid_moves;
 }
 
-bool Puzzle::isGoal(State s) {
-    
-
+bool Puzzle::isGoal(State s) { 
     // Verifica se o estado atual é igual ao estado objetivo
     return s.board == Puzzle::goal_8puzzle;
 }
@@ -105,22 +103,46 @@ void Puzzle::moveLeft() {
     }
 }
 
-int manhattan_distance_matrix(std::vector<std::vector<int>> puzzle) {
+/*
+// Função para rastrear a solução a partir do nó final
+int Puzzle::traceSolution(vector<Puzzle *> sol, Puzzle *g) {
+    Node *curr = g;
+    sol.push_back(g);
+
+    while (curr->parent != nullptr) {
+        curr = curr->parent;
+        sol.push_back(curr);
+    }
+
+    reverse(sol.begin(), sol.end());
+
+    int depth = 0;
+    for (auto i : sol) {
+        depth += 1;
+        // i->printPuzzle();
+        // cout << "\n";
+    }
+    return depth;
+}
+*/
+
+// Função para calcular a distância de Manhattan de um puzzle 8 tile 
+int Puzzle::manhattan_distance_matrix(int puzzle[][3]) {
     int sum = 0;
-    int n = puzzle.size();
+    int n = 3;
 
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
             int num = puzzle[i][j];
             if (num == 0) {
-                continue; // Ignore the blank space.
+                continue; // Ignora o espaço vazio.
             }
 
-            // Find the correct position of the number.
+            // Encontra a posição correta do número.
             int row_goal = num / n;
             int col_goal = num % n;
 
-            // Calculate Manhattan distance.
+            // Calcula a distância de Manhattan.
             int row_diff = abs(i - row_goal);
             int col_diff = abs(j - col_goal);
             sum += row_diff + col_diff;

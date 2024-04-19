@@ -50,11 +50,18 @@ int main() {
     std::cout << "\nTestando se o Goal foi alcancado novamente:\n";
     //Declara um estado não objetivo
 	State x;
-	x.board = {{7, 1, 2}, {3, 4, 5}, {6, 0, 8}};
-	std::cout << "\nNovo estado: {{7, 1, 2}, {3, 4, 5}, {6, 0, 8}}\n";
+	x.board = {{2, 4, 7}, {0, 3, 6}, {8, 1, 5}};
+	std::cout << "\nNovo estado: {{2, 4, 7}, {0, 3, 6}, {8, 1, 5}}\n";
 	//Testa com o mesmo puzzle
     std::cout << puzzle2.isGoal(x);
     std::cout << "\n \n";
+    
+    
+    //Chamando função para calcular distancia manhattan
+    int puzzleArray[3][3] = {{2, 4, 7}, {0, 3, 6}, {8, 1, 5}};
+    int distanceManhattan = puzzle2.manhattan_distance_matrix(puzzleArray);
+    
+	std::cout << "Distancia manhattan: " << distanceManhattan << std::endl;
 
     return 0;
 }
