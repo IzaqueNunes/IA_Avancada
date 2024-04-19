@@ -2,6 +2,7 @@
 #include <algorithm>
 #include "Puzzle.h"
 
+
 using namespace std;
 
 State State::copy() {
