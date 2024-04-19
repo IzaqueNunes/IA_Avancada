@@ -1,6 +1,8 @@
 #include <iostream>
 #include "Puzzle.h"
+#include "Puzzle.cpp"
 #include "SolverBFS.h"
+#include "SolverBFS.cpp"
 
 using namespace std;
 

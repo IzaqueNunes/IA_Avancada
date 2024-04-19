@@ -1,13 +1,15 @@
 #include "SolverBFS.h"
 #include <iostream>
 #include <algorithm>
+#include <queue>
+#include <unordered_set>
 #include "Puzzle.h"
 
 using namespace std;
 
 SolverBFS::SolverBFS() : puzzle(nullptr) {}
 
-SolverBFS::SolverBFS(std::vector<int>& initialState) {
+SolverBFS::SolverBFS(const std::vector<int>& initialState) {
     puzzle = new Puzzle(initialState, nullptr);
 }
 
@@ -22,7 +24,7 @@ void SolverBFS::solve() {
     }
 
     std::queue<Puzzle*> statesQueue;
-    std::unordered_set<std::vector<std::vector<int>>> visited;
+    /*std::unordered_set<std::vector<std::vector<int>>, std::hash<std::vector<std::vector<int>>>, std::equal_to<std::vector<std::vector<int>>>> visited;
 
     statesQueue.push(puzzle);
 
@@ -41,8 +43,7 @@ void SolverBFS::solve() {
         std::vector<Move> possibleMoves = currentPuzzle->getMoves(currentPuzzle->getState());
         for (const auto& move : possibleMoves) {
             Puzzle* successor = new Puzzle(currentPuzzle->getStateAfterMove(move), currentPuzzle);
-            if (visited.find(successor->getState()) == visited.end()) {
-                visited.insert(successor->getState());
+            if (visited.emplace(successor->getState()).second) { // Inserir e verificar se a inserção foi bem-sucedida
                 statesQueue.push(successor);
             } else {
                 delete successor;
@@ -50,5 +51,5 @@ void SolverBFS::solve() {
         }
     }
 
-    std::cerr << "SolverBFS: Não foi possível encontrar uma solução." << std::endl;
+    std::cerr << "SolverBFS: Não foi possível encontrar uma solução." << std::endl;*/
 }
