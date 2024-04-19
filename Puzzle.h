@@ -23,6 +23,7 @@ private:
     std::vector<Puzzle*> children;
     std::vector<int> puzzle;
     Puzzle *parent;
+    std::vector<std::vector<int>> goal_8puzzle = {{0, 1, 2}, {3, 4, 5}, {6, 7, 8}};
 
     int findZero();
     std::vector<Move> getMoves(State s);

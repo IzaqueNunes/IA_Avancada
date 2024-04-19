@@ -2,6 +2,7 @@
 #include <algorithm>
 #include "Puzzle.h"
 
+
 using namespace std;
 
 State State::copy() {
@@ -33,11 +34,10 @@ std::vector<Move> get_moves(State *s) {
 }
 
 bool Puzzle::isGoal(State s) {
-    // Define o estado objetivo
-    std::vector<std::vector<int>> goal_board = {{0, 1, 2}, {3, 4, 5}, {6, 7, 8}};
+    
 
     // Verifica se o estado atual é igual ao estado objetivo
-    return s.board == goal_board;
+    return s.board == Puzzle::goal_8puzzle;
 }
 
 
