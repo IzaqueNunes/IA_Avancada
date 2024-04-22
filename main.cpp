@@ -6,14 +6,18 @@
 
 using namespace std;
 
-
 int main() {
-    // Criando um quebra-cabeça de exemplo
-    std::vector<int> initialPuzzle = {1, 2, 3, 4, 0, 5, 6, 7, 8};
+    // Criando um quebra-cabeça de exemplo com um tabuleiro 2D
+    std::vector<std::vector<int>> initialPuzzle = {
+        {0, 6, 1},
+        {7, 4, 2},
+        {3, 8, 5}
+    };
+    
     Puzzle puzzle(initialPuzzle, nullptr); // nullptr porque é o estado inicial
     
     // Imprimindo o quebra-cabeça inicial
-    std::cout << "Quebra-cabeca inicial:\n";
+    std::cout << "Quebra-cabeça inicial:\n";
     puzzle.printPuzzle();
 
     // Testando os movimentos possíveis
@@ -32,60 +36,41 @@ int main() {
     std::cout << "\nMovendo para a esquerda:\n";
     puzzle.moveLeft();
     puzzle.printPuzzle();
-    
-      
-    std::cout << "\nTestando se o Goal foi alcancado:\n";
-    std::vector<int> testeGoalPuzzle = {0, 1, 2, 3, 4, 5, 6, 7, 8};
-    Puzzle puzzle2(testeGoalPuzzle, nullptr); // 
-	
-	State s;
-	s.board = {{0, 1, 2}, {3, 4, 5}, {6, 7, 8}};
-    std::cout << puzzle2.isGoal(s);
-    
-    //Testando movimentos válidos obtidos
-    std::cout << "\n\n\nVerificacao de movimentos validos:\n";
-    State x;
-	x.board = {{1, 2, 3}, {4, 0, 5}, {6, 7, 8}};
-	cout << "Estado atual do quebra-cabeca:\n";
-    for (const auto& row : x.board) {
-        for (int num : row) {
-            cout << num << " ";
-        }
-        cout << "\n";
-    }
-	// Testando movimentos válidos obtidos
-    std::cout << "\nMovimentos validos para o estado atual:\n";
-    ValidMoves moves = get_moves(&x);
-    // Imprime os movimentos
-	std::cout << "Movimentos:\n";
-	for (const auto& move : moves.moves) {
-	    std::cout << "De (" << move.first_position.first << ", " << move.first_position.second << ") ";
-	    std::cout << "para (" << move.second_position.first << ", " << move.second_position.second << ")\n";
-	}
-	
-	// Imprime os nomes dos movimentos
-	std::cout << "Nomes dos movimentos:\n";
-	for (const auto& move_name : moves.move_names) {
-	    std::cout << move_name << "\n";
-	}
 
+    std::cout << "\nTestando se o objetivo foi alcançado:\n";
+    State goal_state = {
+        {{0, 1, 2}, {3, 4, 5}, {6, 7, 8}},
+        {0, 0}  // posição do espaço em branco no objetivo
+    };
+    std::cout << (puzzle.isGoal(goal_state) ? "Sim" : "Não") << "\n";
 
+    // Testando movimentos válidos obtidos
+    std::cout << "\n\nVerificação de movimentos válidos:\n";
+    State s = {
+        {{1, 2, 3}, {4, 0, 5}, {6, 7, 8}},
+        {1, 1}  // posição do espaço em branco
+    };
+    ValidMoves moves = get_moves(&s);
     
-    //Chamando função para calcular distancia manhattan
-    int puzzleArray[3][3] = {{2, 4, 7}, {0, 3, 6}, {8, 1, 5}};
-    cout << "\n\n\nEstado atual do quebra-cabeca:\n";
-    for (const auto& row : x.board) {
-        for (int num : row) {
-            cout << num << " ";
-        }
-        cout << "\n";
+    // Imprimindo movimentos válidos
+    std::cout << "Movimentos válidos:\n";
+    for (const auto& move : moves.moves) {
+        std::cout << "De (" << move.first_position.first << ", " << move.first_position.second << ") ";
+        std::cout << "para (" << move.second_position.first << ", " << move.second_position.second << ")\n";
     }
-    int distanceManhattan = puzzle2.manhattan_distance_matrix(puzzleArray);
-    
-	std::cout << "Distancia manhattan: " << distanceManhattan << std::endl;
-	
-	SolverBFS sbfs(initialPuzzle);
-	//sbfs.solve();
+
+    std::cout << "Nomes dos movimentos:\n";
+    for (const auto& move_name : moves.move_names) {
+        std::cout << move_name << "\n";
+    }
+
+    // Chamando função para calcular a distância de Manhattan
+    int distanceManhattan = puzzle.manhattan_distance_matrix(s.board);
+    std::cout << "Distância Manhattan: " << distanceManhattan << "\n";
+
+    // Instanciando o SolverBFS com o tabuleiro 2D
+    SolverBFS sbfs(initialPuzzle);
+    sbfs.solve(); // Descomente para resolver o quebra-cabeça usando BFS
 
     return 0;
 }

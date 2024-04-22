@@ -1,5 +1,6 @@
 #ifndef SOLVERBFS_H
 #define SOLVERBFS_H
+
 #include "Puzzle.h"
 #include <iostream>
 #include <vector>
@@ -12,7 +13,7 @@ public:
 
 public:
     SolverBFS();
-    explicit SolverBFS(const std::vector<int>& initialState);
+    explicit SolverBFS(const std::vector<std::vector<int>>& initialState); // Alterado para vetor 2D
     ~SolverBFS();
     void solve();
 };
