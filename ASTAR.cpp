@@ -149,8 +149,6 @@ public:
     }
 
     vector<Node*> Astar(const vector<int>& initialVector) {
-        using namespace chrono;
-        auto startTime = high_resolution_clock::now(); // Iniciar o cronômetro
 
         priority_queue<AstarNode, vector<AstarNode>, AstarComparator> openList;
         unordered_set<string> closedSet;
@@ -185,18 +183,7 @@ public:
             closedSet.insert(stateStr); // Adicionar ao conjunto fechado
 
             if (currentNode->initialVector == finalVector) {
-                auto solutionPath = tracePath(currentNode);
-                auto endTime = high_resolution_clock::now(); // Fim do cronômetro
-
-                // Tempo para solução
-                auto duration = duration_cast<milliseconds>(endTime - startTime).count();
-
-                // Imprimir estatísticas
-                cout << "Número de nós expandidos: " << nodesCount << endl;
-                cout << "Tempo para solução: " << duration << " ms" << endl;
-                cout << "Valor médio da função heurística: " << heuristicSum / nodesCount << endl;
-                cout << "Valor da função heurística no estado inicial: " << startHeuristic << endl;
-                                 
+                auto solutionPath = tracePath(currentNode);                                
                 return solutionPath;
             }
 
@@ -235,18 +222,22 @@ int main() {
     //vector<int> initialState = {2, 4, 7, 0, 3, 6, 8, 1, 5};
 
 
-    vector<int> finalState = {
-        0, 1, 2,
-        3, 4, 5,
-        6, 7, 8
-    };
+    vector<int> finalState = {0, 1, 2,3, 4, 5, 6, 7, 8};
 
     Puzzle puzzle(finalState);
+    
+    
+    using namespace chrono;
+    
+    auto start_time = chrono::high_resolution_clock::now();
+
 
     auto solutionPath = puzzle.Astar(initialState);
+    auto end_time = chrono::high_resolution_clock::now();
+    auto duration_sec = chrono::duration<double>(end_time - start_time).count();
     // Se uma solução foi encontrada
     if (!solutionPath.empty()) {
-        cout << "Solução encontrada com " << solutionPath.size() - 1 << " movimentos:" << endl;
+        cout <<puzzle.nodesCount << "," << solutionPath.size() - 1 <<"," << duration_sec << "," << puzzle.heuristicSum/puzzle.nodesCount <<  "," << puzzle.startHeuristic <<endl;
     }
 
     if (solutionPath.empty()) {
