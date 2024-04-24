@@ -101,11 +101,15 @@ public:
 
 struct AstarComparator {
     bool operator()(const AstarNode& a, const AstarNode& b) const {
-        if (a.fCost == b.fCost) {
-            return a.node->insertionOrder < b.node->insertionOrder;
+		if (a.fCost == b.fCost) {
+			if(a.hCost == b.hCost){        		
+        		return a.node->insertionOrder < b.node->insertionOrder; // LIFO para empates entre valores de f e h
+			}else{
+				return a.hCost > b.hCost; // Prioridade pelo menor hCost
+			}
         }
-        return a.fCost > b.fCost;
-    }
+        return a.fCost > b.fCost; // Prioridade pelo menor fCost
+   	}
 };
 
 vector<Node*> tracePath(Node* node) {
@@ -137,7 +141,7 @@ private:
 
 public:
     int nodesCount = 0; // Contador de nós expandidos
-    int heuristicSum = 0; // Soma dos valores heurísticos
+    float heuristicSum = 0; // Soma dos valores heurísticos
     int startHeuristic = 0; // Valor heurístico do estado inicial
 
     Puzzle(vector<int> _finalVector) {
@@ -198,9 +202,9 @@ public:
 
             // Gerar filhos
             currentNode->moveUp(insertionCounter++);
-            currentNode->moveDown(insertionCounter++);
             currentNode->moveLeft(insertionCounter++);
             currentNode->moveRight(insertionCounter++);
+        	currentNode->moveDown(insertionCounter++);
 
             for (Node* child : currentNode->children) {
                 string childStateStr;
@@ -226,11 +230,10 @@ public:
 
 
 int main() {
-    vector<int> initialState = {
-        0, 6, 1,
-        7, 4, 2,
-        3, 8, 5
-    };
+    vector<int> initialState = {0, 6, 1, 7, 4, 2, 3, 8, 5};
+    //vector<int> initialState = {5, 0, 2, 6, 4, 8, 1, 7, 3};
+    //vector<int> initialState = {2, 4, 7, 0, 3, 6, 8, 1, 5};
+
 
     vector<int> finalState = {
         0, 1, 2,
