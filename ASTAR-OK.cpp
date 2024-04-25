@@ -101,6 +101,7 @@ public:
 
 struct AstarComparator {
     bool operator()(const AstarNode& a, const AstarNode& b) const {
+
 		if (a.fCost == b.fCost) {
 			if(a.hCost == b.hCost){        		
         		return a.node->insertionOrder < b.node->insertionOrder; // LIFO para empates entre valores de f e h
@@ -109,8 +110,8 @@ struct AstarComparator {
 			}
         }
         return a.fCost > b.fCost; // Prioridade pelo menor fCost
-   	}
-};
+    }
+   	};
 
 vector<Node*> tracePath(Node* node) {
     vector<Node*> path;
@@ -168,9 +169,7 @@ public:
 
             Node* currentNode = currentAstarNode.node;
 
-            nodesCount++; // Incrementar o número de nós expandidos
-            heuristicSum += currentAstarNode.hCost; // Soma dos valores heurísticos
-
+            
             string stateStr;
             for (int i : currentNode->initialVector) {
                 stateStr += to_string(i) + ",";
@@ -183,11 +182,14 @@ public:
             closedSet.insert(stateStr); // Adicionar ao conjunto fechado
 
             if (currentNode->initialVector == finalVector) {
-                auto solutionPath = tracePath(currentNode);                                
+                auto solutionPath = tracePath(currentNode);                               
                 return solutionPath;
             }
 
             // Gerar filhos
+            nodesCount++; // Incrementar o número de nós expandidos
+            heuristicSum += currentAstarNode.hCost; // Soma dos valores heurísticos
+
             currentNode->moveUp(insertionCounter++);
             currentNode->moveLeft(insertionCounter++);
             currentNode->moveRight(insertionCounter++);
@@ -207,7 +209,7 @@ public:
                 int hCost = manhattanDistance(child->initialVector, finalVector);
                 int fCost = gCost + hCost;
 
-                openList.push({ child, gCost, hCost, fCost });
+                openList.push({child, gCost, hCost, fCost});
             }
         }
 
@@ -218,7 +220,7 @@ public:
 
 int main() {
 	
-	 ifstream inputFile("input/teste.txt"); // Abre o arquivo de entrada
+	 ifstream inputFile("input/8puzzle_instances.txt"); // Abre o arquivo de entrada
 
     if (!inputFile.is_open()) { // Verifica se o arquivo foi aberto corretamente
         cerr << "Erro ao abrir o arquivo de entrada." << endl;
