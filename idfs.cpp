@@ -1,148 +1,219 @@
+#include "idfs.h"
 #include <iostream>
-#include <fstream>
-#include <sstream>
-#include <vector>
 #include <algorithm>
-#include <stack>
+#include <queue>
 #include <chrono>
-#include <map>
-#include "Puzzle.h"
+#include <vector>
 
-using namespace std;
-    
-/*
-    #import "puzzle.h"
-    int depth_limited_search(State s, int depth, int depth_limit){
-    	if(puzzle::is_goal(s)){
-    		return depth;
-		}
-		
-		if (depth_limit > 0){
-			for(puzzle::Move m:puzzle::successors(s)){
-			 //PARA LEMBRAR: Move = (current_blank_position, next_position)
-			 
-			 State next_state = puzzle::make_move(s, m);
-			 int solution = depth_limited_search(next_state, depth+1, depth_limit);
-			 if(solution != SEM_SOLUCAO){ //SEM_SOLUCAO=-1
-			 	return solution;
-			 }
-			 }
-		}
-		return NO_SOLUTION;
-			
-	}
-		
+// Construtor da classe Node
+IDFSNode::IDFSNode(const std::vector<int>& _initialVector, IDFSNode* _parent)
+    : initialVector(_initialVector), parent(_parent) {}
+
+// Método para encontrar a posição do zero
+int IDFSNode::findZero() const {
+    auto it = std::find(initialVector.begin(), initialVector.end(), 0);
+    return static_cast<int>(std::distance(initialVector.begin(), it));
 }
-*/ 
 
-int traceSolution(vector<Puzzle *> sol, Puzzle *g) {
-    Puzzle *curr = g;
-    sol.push_back(g);
+// Métodos para mover o zero no quebra-cabeça
+void IDFSNode::moveUp() {
+    int zPos = findZero();
+    if (zPos >= 3) { // Pode mover para cima
+        std::vector<int> temp = initialVector;
+        std::swap(temp[zPos], temp[zPos - 3]);
+        IDFSNode* child = new IDFSNode(temp, this);
+        children.push_back(child);
+    }
+}
+
+void IDFSNode::moveDown() {
+    int zPos = findZero();
+    if (zPos < 6) { // Pode mover para baixo
+        std::vector<int> temp = initialVector;
+        std::swap(temp[zPos], temp[zPos + 3]);
+        IDFSNode* child = new IDFSNode(temp, this);
+        children.push_back(child);
+    }
+}
+
+void IDFSNode::moveRight() {
+    int zPos = findZero();
+    if (zPos % 3 < 2) { // Pode mover para a direita
+        std::vector<int> temp = initialVector;
+        std::swap(temp[zPos], temp[zPos + 1]);
+        IDFSNode* child = new IDFSNode(temp, this);
+        children.push_back(child);
+    }
+}
+
+void IDFSNode::moveLeft() {
+    int zPos = findZero();
+    if (zPos % 3 > 0) { // Pode mover para a esquerda
+        std::vector<int> temp = initialVector;
+        std::swap(temp[zPos], temp[zPos - 1]);
+        IDFSNode* child = new IDFSNode(temp, this);
+        children.push_back(child);
+    }
+}
+
+// Método para imprimir o estado do quebra-cabeça
+void IDFSNode::printPuzzle() const {
+    int count = 0;
+    for (auto i : initialVector) {
+        if (count % 3 == 0)
+            std::cout << "\n";
+        std::cout << i << ' ';
+        count++;
+    }
+}
+
+// Função para rastrear a solução
+int traceSolution(std::vector<IDFSNode*>& solution, IDFSNode* goal) {
+    IDFSNode* curr = goal;
+    solution.push_back(goal);
 
     while (curr->parent != nullptr) {
         curr = curr->parent;
-        sol.push_back(curr);
+        solution.push_back(curr);
     }
 
-    reverse(sol.begin(), sol.end());
+    std::reverse(solution.begin(), solution.end());
 
     int depth = 0;
-    for (auto i : sol) {
-        depth += 1;
-        // i->printPuzzle();
-        // cout << "\n";
+    for (auto i : solution) {
+        depth++;
     }
+
     return depth;
 }
 
-int recursive_idfs(int maxDepth, State *currentState){
-		int objective = 0;
-    	vector<Puzzle *> solution;
-        if (Puzzle::is_goal(currentState)) {
-            	this->depth = traceSolution(solution, currentChild);
-            	return depth;
+// Construtor da classe Puzzle
+IDFSPuzzle::IDFSPuzzle(const std::vector<int>& _initialVector, const std::vector<int>& _finalVector)
+    : finalVector(_finalVector), nodesCount(0), depth(0) {
+    IDFSNode* initialNode = new IDFSNode(_initialVector, nullptr);
+    queue.push(initialNode);
+    visited[_initialVector] = true;
+}
+
+// Implementação do IDFS
+int IDFSPuzzle::IDFS(const std::vector<int>& initialVector) {
+    int objective = -1;
+    depth = 0;
+
+    IDFSNode* initialNode = new IDFSNode(initialVector, nullptr);
+
+    while (true) {
+        objective = recursive_idfs(depth, initialNode);
+
+        if (objective != -1) {
+            break;
         }
+
+        depth++; // Aumenta a profundidade permitida
+    }
+
+    delete initialNode; // Limpa a memória do nó inicial
+    
+    return objective; // Retorna a profundidade onde encontrou a solução
+}
+
+// Implementação do método recursivo para IDFS
+int IDFSPuzzle::recursive_idfs(int maxDepth, IDFSNode* currentState) {
+    std::vector<IDFSNode *> solution;
+
+		// Verificando se o estado atual é Goal
+    if (currentState->initialVector == this->finalVector) {
+        this->depth = traceSolution(solution, currentState);
+        return this->depth;
+    }
+        
+        // Verificando profundidade
         if (maxDepth > 0) {
-            this->Puzzle::nodesCount++;          
-           //for (auto currentChild : currentNode->children) {              
-			for (move m : Puzzle::get_moves(S)) {              
-        		State next_state = Puzzle::make_move(S, m);
-				if (visited.count(next_state) == 0) {
-                    this->visited[next_state] = true;
-                    //this->stack.push(currentChild);
-                    objective = recursive_idfs(maxDepth -1, next_state);
-                    //achou
-                    if(objective != -1){
-                    	return objective;
-					}                    
-                }
-            }            
+		// Gerando filhos do estado atual
+		    currentState->moveUp();
+            currentState->moveLeft();
+            currentState->moveRight();
+            currentState->moveDown();
+            
+        	this->nodesCount++; 
+			  
+            // iterando filhos
+			for (IDFSNode* child : currentState->children) {
+				// evitando ciclos verificando o pai
+				if(currentState->parent != nullptr && child->initialVector == currentState->parent->initialVector){
+					continue;	
+				}
+				
+				// verificando se o filho já foi visitado
+				bool alreadyVisited = false;
+				
+				for (IDFSNode* visitedNode: solution){
+					if (visitedNode->initialVector == child->initialVector){
+						bool alreadyVisited = true;
+						break;
+					}
+				}
+				
+				// se o filho já foi visitado, ignora e continua
+				if(alreadyVisited){
+					continue;
+				}
+                
+                // realizando a busca em profundidade recursiva
+                int objective = recursive_idfs(maxDepth -1, child);
+                
+                //retornando objetivo se o mesmo foi encontrado
+                if(objective != -1){
+                	return objective;
+				}
+				
+				// limpando memória alocada para o filho
+				delete child;                    
+            }
+			currentState->children.clear();            
         }
         return -1;
-        
-}  
-
-void IDFS(vector<int> initialVector){
-        int objective = 0;
-       int depth = 0;
-        
-        Puzzle *initialNode = new Puzzle(initialVector, nullptr);
-        
-        while (objective == 0 && depth < 32 ){
-        	cout << depth << endl;
-        	objective = recursive_idfs(depth, initialNode);
-        	if(objective != -1){break;}
-			}
-        	depth++;
-		}		
-	}
+	}  	    
 	
- 
 
-int main() {
-    ifstream inputFile("input/teste.txt"); // Abre o arquivo de entrada
-
-    if (!inputFile.is_open()) { // Verifica se o arquivo foi aberto corretamente
-        cerr << "Erro ao abrir o arquivo de entrada." << endl;
-        return 1;
-    }
-
-    string line;
-    vector<vector<int>> initialStates; // Vetor para armazenar os estados iniciais
-
-    // Lê os estados iniciais do arquivo
-    while (getline(inputFile, line)) {
-        istringstream iss(line);
-        vector<int> initialState;
-        int num;
-
-        while (iss >> num) {
-            initialState.push_back(num);
+// Função para calcular a distância de Manhattan de uma matriz 3x3
+// Calcula a distância de Manhattan entre um estado atual e um estado objetivo
+int manhattanDistanceIDFS(const std::vector<int>& state, const std::vector<int>& goal) {
+    int distance = 0; // Inicializa a distância em zero
+    // Percorre cada elemento do vetor de estado para calcular a distância de Manhattan
+    for (size_t i = 0; i < state.size(); ++i) {
+        if (state[i] != 0) { // Ignora o espaço vazio
+            // Determina a posição correspondente no vetor objetivo
+            int goalPos = static_cast<int>(std::distance(goal.begin(), std::find(goal.begin(), goal.end(), state[i])));
+            // Calcula a diferença de linhas
+            int rowDistance = std::abs(static_cast<int>(i / 3) - (goalPos / 3));
+            // Calcula a diferença de colunas
+            int colDistance = std::abs(static_cast<int>((i % 3) - (goalPos % 3)));
+            distance += rowDistance + colDistance; // Soma as distâncias de linha e coluna
         }
+    }
+    return distance; // Retorna a distância total calculada
+}
 
-        initialStates.push_back(initialState);
+int manhattan_distance_matrix(int puzzle[3][3]) {
+    int sum = 0;
+    int n = 3;
+
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            int num = puzzle[i][j];
+            if (num == 0) {
+                continue; // Ignora o espaço vazio
+            }
+
+            int row_goal = num / n;
+            int col_goal = num % n;
+
+            int row_diff = std::abs(i - row_goal);
+            int col_diff = std::abs(j - col_goal);
+            sum += row_diff + col_diff;
+        }
     }
 
-    inputFile.close(); // Fecha o arquivo de entrada
-
-    for (int i = 0; i < initialStates.size(); ++i) {
-        auto start_time = chrono::high_resolution_clock::now();
-
-        Puzzle puzzle(initialStates[i], {0, 1, 2, 3, 4, 5, 6, 7, 8});
-        puzzle.IDFS(initialStates[i]);
-
-        auto end_time = chrono::high_resolution_clock::now();
-        auto duration_sec = chrono::duration<double>(end_time - start_time).count();
-
-        cout << puzzle.nodesCount << ", " << puzzle.depth - 1 << ", " << duration_sec << ", " << "0, ";
-
-        // Calcular e imprimir a heurística (distância de Manhattan)
-        int puzzleArray[3][3] = {{initialStates[i][0], initialStates[i][1], initialStates[i][2]},
-                                  {initialStates[i][3], initialStates[i][4], initialStates[i][5]},
-                                  {initialStates[i][6], initialStates[i][7], initialStates[i][8]}};
-        int distanceManhattan = manhattan_distance_matrix(puzzleArray);
-        cout << distanceManhattan << endl;
-    }
-
-    return 0;
+    return sum;
 }
