@@ -5,36 +5,46 @@
 #include <algorithm>
 #include <queue>
 #include <unordered_set>
+#include <unordered_map>
 #include <cmath>
 #include <string>
 #include <functional>
 
-// Classe para representar o estado do nó como string para o conjunto fechado
-struct HashVector {
-    size_t operator()(const std::vector<int>& vec) const {
-        std::hash<int> hasher;
-        size_t seed = 0;
-        for (int i : vec) {
-            seed ^= hasher(i) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-        }
-        return seed;
+uint64_t encodeState(const std::vector<int>& vec) {
+    uint64_t state = 0;
+    for (size_t i = 0; i < vec.size(); ++i) {
+        state |= (static_cast<uint64_t>(vec[i]) << (4 * i));
     }
-};
+    return state;
+}
 
-A15Node::A15Node(std::vector<int> _initialVector, A15Node* _parent, int _insertionOrder) {
-    initialVector = _initialVector;
-    parent = _parent;
-    insertionOrder = _insertionOrder;
+std::vector<int> decodeState(uint64_t state) {
+    std::vector<int> vec(16);
+    for (size_t i = 0; i < 16; ++i) {
+        vec[i] = (state >> (4 * i)) & 0xF;
+    }
+    return vec;
+}
+
+A15Node::A15Node(uint64_t _state, A15Node* _parent, int _insertionOrder) 
+    : state(_state), parent(_parent), insertionOrder(_insertionOrder) {}
+
+A15Node::~A15Node() {
+    for (A15Node* child : children) {
+        delete child;
+    }
 }
 
 int A15Node::findZero() const {
-    auto it = std::find(initialVector.begin(), initialVector.end(), 0);
-    return static_cast<int>(std::distance(initialVector.begin(), it));
+    std::vector<int> vec = decodeState(state);
+    auto it = std::find(vec.begin(), vec.end(), 0);
+    return static_cast<int>(std::distance(vec.begin(), it));
 }
 
 void A15Node::printPuzzle() const {
+    std::vector<int> vec = decodeState(state);
     int count = 0;
-    for (auto i : initialVector) {
+    for (auto i : vec) {
         if (count % 4 == 0) {
             std::cout << "\n";
         }
@@ -47,9 +57,9 @@ void A15Node::printPuzzle() const {
 void A15Node::moveUp(int order) {
     int zPos = findZero();
     if (zPos >= 4) {
-        std::vector<int> temp = initialVector;
-        std::swap(temp[zPos], temp[zPos - 4]);
-        A15Node* child = new A15Node(temp, this, order);
+        std::vector<int> vec = decodeState(state);
+        std::swap(vec[zPos], vec[zPos - 4]);
+        A15Node* child = new A15Node(encodeState(vec), this, order);
         children.push_back(child);
     }
 }
@@ -57,9 +67,9 @@ void A15Node::moveUp(int order) {
 void A15Node::moveDown(int order) {
     int zPos = findZero();
     if (zPos < 12) {
-        std::vector<int> temp = initialVector;
-        std::swap(temp[zPos], temp[zPos + 4]);
-        A15Node* child = new A15Node(temp, this, order);
+        std::vector<int> vec = decodeState(state);
+        std::swap(vec[zPos], vec[zPos + 4]);
+        A15Node* child = new A15Node(encodeState(vec), this, order);
         children.push_back(child);
     }
 }
@@ -67,9 +77,9 @@ void A15Node::moveDown(int order) {
 void A15Node::moveLeft(int order) {
     int zPos = findZero();
     if (zPos % 4 > 0) {
-        std::vector<int> temp = initialVector;
-        std::swap(temp[zPos], temp[zPos - 1]);
-        A15Node* child = new A15Node(temp, this, order);
+        std::vector<int> vec = decodeState(state);
+        std::swap(vec[zPos], vec[zPos - 1]);
+        A15Node* child = new A15Node(encodeState(vec), this, order);
         children.push_back(child);
     }
 }
@@ -77,9 +87,9 @@ void A15Node::moveLeft(int order) {
 void A15Node::moveRight(int order) {
     int zPos = findZero();
     if (zPos % 4 < 3) {
-        std::vector<int> temp = initialVector;
-        std::swap(temp[zPos], temp[zPos + 1]);
-        A15Node* child = new A15Node(temp, this, order);
+        std::vector<int> vec = decodeState(state);
+        std::swap(vec[zPos], vec[zPos + 1]);
+        A15Node* child = new A15Node(encodeState(vec), this, order);
         children.push_back(child);
     }
 }
@@ -108,11 +118,13 @@ std::vector<A15Node*> tracePath(A15Node* node) {
     return path;
 }
 
-int manhattanDistanceA15(const std::vector<int>& state, const std::vector<int>& goal) {
+int manhattanDistanceA15(uint64_t state, uint64_t goal) {
+    std::vector<int> stateVec = decodeState(state);
+    std::vector<int> goalVec = decodeState(goal);
     int distance = 0;
-    for (size_t i = 0; i < state.size(); ++i) {
-        if (state[i] != 0) {
-            int goalPos = std::find(goal.begin(), goal.end(), state[i]) - goal.begin();
+    for (size_t i = 0; i < stateVec.size(); ++i) {
+        if (stateVec[i] != 0) {
+            int goalPos = std::find(goalVec.begin(), goalVec.end(), stateVec[i]) - goalVec.begin();
             int rowDistance = std::abs(static_cast<int>(i / 4) - static_cast<int>(goalPos / 4));
             int colDistance = std::abs(static_cast<int>(i % 4) - static_cast<int>(goalPos % 4));
             distance += rowDistance + colDistance;
@@ -121,16 +133,22 @@ int manhattanDistanceA15(const std::vector<int>& state, const std::vector<int>& 
     return distance;
 }
 
-A15Puzzle::A15Puzzle(std::vector<int> _finalVector) : finalVector(_finalVector) {}
+A15Puzzle::A15Puzzle(const std::vector<int>& _finalVector) : finalState(encodeState(_finalVector)) {}
+
+A15Puzzle::~A15Puzzle() {
+    for (auto& pair : allNodes) {
+        delete pair.second;
+    }
+}
 
 std::vector<A15Node*> A15Puzzle::Astar15(const std::vector<int>& initialVector) {
     std::priority_queue<AstarNode15, std::vector<AstarNode15>, AstarComparator15> openList;
-    std::unordered_set<std::vector<int>, HashVector> closedSet;
+    std::unordered_set<uint64_t> closedSet;
     int insertionCounter = 0;
 
-    A15Node* startNode = new A15Node(initialVector, nullptr, insertionCounter++);
+    A15Node* startNode = new A15Node(encodeState(initialVector), nullptr, insertionCounter++);
     int startGCost = 0;
-    int startHCost = manhattanDistanceA15(initialVector, finalVector);
+    int startHCost = manhattanDistanceA15(startNode->state, finalState);
     int startFCost = startGCost + startHCost;
     startHeuristic = startHCost;
 
@@ -142,20 +160,22 @@ std::vector<A15Node*> A15Puzzle::Astar15(const std::vector<int>& initialVector) 
 
         A15Node* currentNode = currentAstarNode.node;    
 
-        // Verifica se o estado atual já foi visitado
-        if (closedSet.count(currentNode->initialVector) > 0) {
+        if (closedSet.count(currentNode->state) > 0) {
             continue;
         }
 
-        // Marca o estado atual como visitado
-        closedSet.insert(currentNode->initialVector);
+        closedSet.insert(currentNode->state);
 
-        if (currentNode->initialVector == finalVector) {
-            return tracePath(currentNode);
+        if (currentNode->state == finalState) {
+            std::vector<A15Node*> path = tracePath(currentNode);
+            for (auto node : path) {
+                delete node;
+            }
+            return path;
         }
 
-        nodesCount++; // Incrementa o número de nós expandidos
-        heuristicSum += currentAstarNode.hCost; // Soma das heurísticas
+        nodesCount++;
+        heuristicSum += currentAstarNode.hCost;
 
         currentNode->moveUp(insertionCounter++);
         currentNode->moveLeft(insertionCounter++);
@@ -163,18 +183,21 @@ std::vector<A15Node*> A15Puzzle::Astar15(const std::vector<int>& initialVector) 
         currentNode->moveDown(insertionCounter++);
 
         for (A15Node* child : currentNode->children) {
-            // Verifica se o estado do nó filho já foi visitado
-            if (closedSet.count(child->initialVector) > 0) {
+            if (closedSet.count(child->state) > 0) {
+                delete child;
                 continue;
             }
-
+            
+			allNodes[child->state] = child;
             int gCost = currentAstarNode.gCost + 1;
-            int hCost = manhattanDistanceA15(child->initialVector, finalVector);
+            int hCost = manhattanDistanceA15(child->state, finalState);
             int fCost = gCost + hCost;
 
             openList.push({child, gCost, hCost, fCost});
+            
         }
-        //delete currentNode;
+        
+        currentNode->children.clear();
     }
 
     return {}; // Nenhuma solução encontrada
